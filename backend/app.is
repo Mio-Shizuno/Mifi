@@ -1,0 +1,40 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const authRoutes = require('./routes/auth');
+const postRoutes = require('./routes/posts');
+const userRoutes = require('./routes/users');
+const commentRoutes = require('./routes/comments');
+const messageRoutes = require('./routes/messages');
+
+dotenv.config();
+const app = express();
+
+// 中间件
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// 数据库连接
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mifi')
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+// 路由
+app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/messages', messageRoutes);
+
+// 错误处理
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({ 
+    message: err.message || 'Internal Server Error' 
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
